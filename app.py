@@ -55,13 +55,29 @@ def scrape():
 
         entry_line = {}
         entry_line['timestamp'] = timestamp_str
+        entry_line['badischer_bahnhof'] = lots[1]
+        entry_line['messe'] = lots[2]
+        entry_line['europe'] = lots[3]
+        entry_line['rebgasse'] = lots[4]
+        entry_line['claramatte'] = lots[5]
+        entry_line['elisabethen'] = lots[6]
+        entry_line['steinen'] = lots[7]
+        entry_line['city'] = lots[8]
+        entry_line['storchen'] = lots[9]
+        entry_line['post_basel'] = lots[10]
+        entry_line['centralbahnparking'] = lots[11]
+        entry_line['hilton'] = lots[12]
+        entry_line['aeschen'] = lots[13]
+        entry_line['anfos'] = lots[14]
+        entry_line['bahnhof_sued'] = lots[15]
+
 
         # insert the data into the Google Spreadsheet
         entry = client.InsertRow(entry_line, os.environ.get('SPREADSHEET_KEY'), os.environ.get('WORKSHEET_ID'))
         if isinstance(entry, gdata.spreadsheet.SpreadsheetsList):
-            app.logger.info('entry succeeeded')
+            app.logger.info('scraping for ' + timestamp_str + ' was successful.')
         else:
-            app.logger.info('entry failed')
+            app.logger.error('inserting an entry failed')
 
 
     else: # response was invalid, the site might be down or there's a network error
