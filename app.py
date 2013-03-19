@@ -1,7 +1,9 @@
 import os
 from flask import Flask
 from flask.ext.heroku import Heroku
-import gdata.docs.service
+import gdata.spreadsheet.service
+import gdata.service
+import gdata.spreadsheet
 import urllib3
 import lxml.html
 from datetime import datetime
@@ -43,16 +45,23 @@ def scrape():
             app.logger.info(parkingarea_name + ' has ' + parkingarea_lots + ' available at lots ' + timestamp_str)
 
 
-        # Create a client class which will make HTTP requests with Google Docs server.
-        # client = gdata.docs.service.DocsService()
+        # Create a client class which will make HTTP requests with Google Spreadsheets server.
+        client = gdata.spreadsheet.service.SpreadsheetsService()
         # Authenticate using your Google Docs email address and password.
-        # client.ClientLogin(os.environ.get('USERNAME'), os.environ.get('PASSWORD'))
+        client.email = os.environ.get('USERNAME')
+        client.password = os.environ.get('PASSWORD')
+        client.source = 'Parkleitsytem Basel Scraper'
+        client.ProgrammaticLogin()
 
-        # make sure the Google Spreadsheet exists
+        entry_line = {}
+        entry_line['timestamp'] = timestamp_str
 
-        # os.environ('SPREADSHEET_NAME')
-
-        # insert another line into the Spreadsheet
+        # insert the data into the Google Spreadsheet
+        entry = client.InsertRow(entry_line, os.environ.get('SPREADSHEET_KEY'), os.environ.get('WORKSHEET_ID'))
+        if isinstance(entry, gdata.spreadsheet.SpreadsheetsList):
+            app.logger.info('entry succeeeded')
+        else:
+            app.logger.info('entry failed')
 
 
     else: # response was invalid, the site might be down or there's a network error
@@ -61,16 +70,6 @@ def scrape():
         app.logger.error('http status code: ' + r.status)
 
 
-    # send the data to the Google Spreadsheet
-
-
-
-    # # # Query the server for an Atom feed containing a list of your documents.
-    # documents_feed = client.GetDocumentListFeed()
-    # # Loop through the feed and extract each document entry.
-    # for document_entry in documents_feed.entry:
-    #   # Display the title of the document on the command line.
-    #   app.logger.info(document_entry.title.text)
 
     return "Website scraped on " + timestamp_str
 
