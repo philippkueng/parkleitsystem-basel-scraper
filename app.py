@@ -1,6 +1,4 @@
 import os
-from flask import Flask
-from flask.ext.heroku import Heroku
 import gdata.spreadsheet.service
 import gdata.service
 import gdata.spreadsheet
@@ -8,19 +6,8 @@ import urllib3
 import lxml.html
 from datetime import datetime
 
-app = Flask(__name__)
-heroku = Heroku(app)
-
-app.config['DEBUG'] = os.environ.get('DEBUG')
-
-@app.route('/')
-def root():
-    return 'Welcome to the Parkleitsytem Basel Scraper'
-
-
-@app.route('/scrape')
 def scrape():
-    app.logger.info('start processing...')
+    self.stdout.write('start processing...')
     timestamp = datetime.now()
     timestamp_str = timestamp.strftime("%Y-%m-%d %H:%M:%S")
 
@@ -29,7 +16,7 @@ def scrape():
     r = http.request('GET', 'http://www.parkleitsystem-basel.ch/stadtplan.php')
     if r.status == 200: # response was correct, continue with the parsing process
 
-        app.logger.info('fetched html successfully, parsing now...')
+        self.stdout.write('fetched html successfully, parsing now...')
         
         # parse the html response
         root = lxml.html.fromstring(r.data)
@@ -42,7 +29,7 @@ def scrape():
             parkingarea_name = tr.cssselect('td>a')[0].text
             parkingarea_lots = tr.cssselect('td>b')[0].text
             lots.append(parkingarea_lots)
-            app.logger.info(parkingarea_name + ' has ' + parkingarea_lots + ' available at lots ' + timestamp_str)
+            self.stdout.write(parkingarea_name + ' has ' + parkingarea_lots + ' available at lots ' + timestamp_str)
 
 
         # Create a client class which will make HTTP requests with Google Spreadsheets server.
@@ -75,21 +62,18 @@ def scrape():
         # insert the data into the Google Spreadsheet
         entry = client.InsertRow(entry_line, os.environ.get('SPREADSHEET_KEY'), os.environ.get('WORKSHEET_ID'))
         if isinstance(entry, gdata.spreadsheet.SpreadsheetsList):
-            app.logger.info('scraping for ' + timestamp_str + ' was successful.')
+            self.stdout.write('scraping for ' + timestamp_str + ' was successful.')
         else:
-            app.logger.error('inserting an entry failed')
+            self.stdout.write('inserting an entry failed')
 
 
     else: # response was invalid, the site might be down or there's a network error
         # go check again! // TODO
-        app.logger.info('the site might be down, check again in a couple of minutes')
-        app.logger.error('http status code: ' + r.status)
+        self.stdout.write('the site might be down, check again in a couple of minutes')
+        self.stdout.write('http status code: ' + r.status)
 
 
 
     return "Website scraped on " + timestamp_str
-
-if __name__ == '__main__':
-    # Bind to PORT if defined, otherwise default to 5000.
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+    
+scrape() # execute the scraping process
