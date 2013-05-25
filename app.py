@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import unicode_literals
 import os
 import sys
 import gdata.spreadsheet.service
@@ -8,7 +9,6 @@ import gdata.spreadsheet
 import urllib3
 import lxml.html
 from datetime import datetime
-from __future__ import unicode_literals
 
 def scrape():
     sys.stdout.write('start processing...')
